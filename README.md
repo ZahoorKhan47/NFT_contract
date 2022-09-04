@@ -8,7 +8,9 @@ ERC-721 Compliance Compatible
 
 ## Users are      
 Whitelisted user
+
 Platform user
+
 Public user
 ## NFT  Minting Limits
 Total Minting Limit         
