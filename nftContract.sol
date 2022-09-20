@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
+
     uint256 public totalMintingLimit;
     uint256 public totalMinted;
     uint256 public mintingLimitPerUser;
@@ -42,6 +43,8 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
         uint256 tokenId,
         string metaDataHash
     );
+        event recieveEth(address sender, uint value, bytes data);
+
     event baseURIupdated(address by, string newURI);
     event added_to_whitelist(address addr);
     event added_to_platform(address addr);
@@ -99,7 +102,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
      *
      */
 
-    function addToWhiteList(address _user) public onlyOwner {
+    function addToWhiteList(address _user) public onlyOwner whenNotPaused {
         if (platformUsers[_user]) {
             revert already_a_user(_user);
         }
@@ -117,7 +120,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
      *
      */
 
-    function allowPublicSales() public onlyOwner {
+    function allowPublicSales() public onlyOwner whenNotPaused {
         publicSalesStatus = true;
         publicMintingLimit += whitelistUserMintingLimit;
         whitelistUserMintingLimit = 0;
@@ -136,7 +139,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
      *
      */
 
-    function addToPlatform(address _user) public onlyOwner {
+    function addToPlatform(address _user) public onlyOwner whenNotPaused {
         if (whitelistUser[_user]) {
             revert already_a_user(_user);
         }
@@ -154,7 +157,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
      *
      */
 
-    function removeFromPlatform(address _user) public onlyOwner {
+    function removeFromPlatform(address _user) public onlyOwner whenNotPaused {
         platformUsers[_user] = false;
         emit removed_from_platform(_user);
     }
@@ -198,6 +201,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
     function updateBaseURI(string memory _baseURI)
         public
         onlyWhiteListedAdmins
+        whenNotPaused
     {
         baseURI = _baseURI;
         emit baseURIupdated(msg.sender, baseURI);
@@ -211,7 +215,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
      *
      */
 
-    function alterMintingStatus() public onlyOwner {
+    function alterMintingStatus() public onlyOwner whenNotPaused {
         if (!mintingStatus) {
             mintingStatus = true;
             emit minting_status_activated();
@@ -295,6 +299,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
 
     function mintAsPublicUser(uint256 tokenId, string memory _metadataHash)
         public
+        whenNotPaused
     {
         if (!mintingStatus) {
             revert minting_status_inactive();
@@ -340,6 +345,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
     function mintAsWhiteListUser(uint256 tokenId, string memory _metadataHash)
         public
         onlyWhitelistedUser
+        whenNotPaused
     {
         if (publicSalesStatus) {
             revert public_sale_actived();
@@ -385,6 +391,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
     function mintAsPlatformUser(uint256 tokenId, string memory _metadataHash)
         public
         onlyWhiteListedAdmins
+        whenNotPaused
     {
         if (!mintingStatus) {
             revert minting_status_inactive();
@@ -403,4 +410,26 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
         platformMintingLimit--;
         mint(tokenId, _metadataHash, msg.sender);
     }
+
+
+
+
+
+    
+    /**
+    * @dev  receive function to receive Ethers called when no data is sent with call
+    */
+    receive() external payable {
+        emit recieveEth( msg.sender, msg.value, "");
+    }
+
+    /**
+    * @dev fallback function to receive call with data and value.
+    *
+    */
+    fallback() external payable {
+        emit recieveEth( msg.sender, msg.value, msg.data);
+    }
+
+   
 }
