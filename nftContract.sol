@@ -16,7 +16,7 @@ contract ZahoorKhan is ERC721, Ownable, Pausable, ERC721URIStorage {
     uint256 public platformMintingLimit;
     string public baseURI;
 
-    bool public publicSalesStatus = false;
+    bool public publicSalesStatus;
     bool public mintingStatus;
 
     struct nftInfo {
